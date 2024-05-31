@@ -50,7 +50,6 @@ async function run() {
 
     const roomCollection = client.db('shelter-capper').collection('rooms')
 
-
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -91,6 +90,16 @@ async function run() {
       const result = await roomCollection.find(query).toArray()
       res.send(result)
     })
+
+    // save room data in db
+    app.post('/room', async(req, res)=>{
+      const roomData = req.body
+      const result = await roomCollection.insertOne(roomData)
+      res.send(result)
+    })
+
+
+
     // get a single room
     app.get('/rooms/:id', async(req, res)=>{
       const id = req.params.id
@@ -99,7 +108,26 @@ async function run() {
       res.send(result)
     })
 
+    // get all rooms for host
+    // app.get('/my-listings/:email', async(req, res)=>{
+    //   const email = req.params.email
+    //   let query = {}
+    //   const result = await roomCollection.find(query).toArray()
+    //   res.send(result)
+    // })
 
+
+    app.get('/my-listings/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { "host.email": email }; // Filter by host's email
+      try {
+        const result = await roomCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: 'Error retrieving listings', error });
+      }
+    });
+    
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
